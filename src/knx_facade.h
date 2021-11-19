@@ -331,6 +331,11 @@ template <class P, class B> class KnxFacade : private SaveRestore
     {
         return _bau.groupObjectTable().get(goNr);
     }
+
+    uint16_t getGroupObjectCount()
+    {
+        return _bau.groupObjectTable().entryCount();
+    } 
 #endif
 
     void restart(uint16_t individualAddress)
