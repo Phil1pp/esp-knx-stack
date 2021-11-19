@@ -58,7 +58,7 @@ void EspPlatform::setupMultiCast(uint32_t addr, uint16_t port)
     Serial.printf("setup multicast addr: %s port: %d ip: %s\n", mcastaddr.toString().c_str(), port,
         WiFi.localIP().toString().c_str());
     uint8 result = _udp.beginMulticast(WiFi.localIP(), mcastaddr, port);
-    Serial.printf("result %d\n", result);
+    Serial.printf("multicast setup result %d\n", result);
 }
 
 void EspPlatform::closeMultiCast()
