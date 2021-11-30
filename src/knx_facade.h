@@ -209,12 +209,12 @@ template <class P, class B> class KnxFacade : private SaveRestore
             if (_progLedState)
             {
                 println("progmode on");
-                digitalWrite(ledPin(), _ledPinActiveOn);
+                //digitalWrite(ledPin(), _ledPinActiveOn);
             }
             else
             {
                 println("progmode off");
-                digitalWrite(ledPin(), HIGH - _ledPinActiveOn);
+                //digitalWrite(ledPin(), HIGH - _ledPinActiveOn);
             }
         }
         if (_toggleProgMode)
@@ -252,7 +252,7 @@ template <class P, class B> class KnxFacade : private SaveRestore
 
     void start()
     {
-        pinMode(ledPin(), OUTPUT);
+        /*pinMode(ledPin(), OUTPUT);
 
         digitalWrite(ledPin(), HIGH - _ledPinActiveOn);
 
@@ -266,7 +266,7 @@ template <class P, class B> class KnxFacade : private SaveRestore
             #else
                 attachInterrupt(_buttonPin, _progButtonISRFuncPtr, _buttonPinInterruptOn);
             #endif
-        }
+        }*/
 
         enabled(true);
     }
