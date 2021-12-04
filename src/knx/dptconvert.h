@@ -80,6 +80,7 @@ bool busValueToLocale(const uint8_t* payload, size_t payload_length, const Dpt& 
 bool busValueToRGB(const uint8_t* payload, size_t payload_length, const Dpt& datatype, KNXValue& value);
 bool busValueToFlaggedScaling(const uint8_t* payload, size_t payload_length, const Dpt& datatype, KNXValue& value);
 bool busValueToActiveEnergy(const uint8_t* payload, size_t payload_length, const Dpt& datatype, KNXValue& value);
+bool busValueToRGBW(const uint8_t* payload, size_t payload_length, const Dpt& datatype, KNXValue& value);
 
 //Internal to KNX
 bool valueToBusValueBinary(const KNXValue& value, uint8_t* payload, size_t payload_length, const Dpt& datatype);
@@ -118,6 +119,7 @@ bool valueToBusValueLocale(const KNXValue& value, uint8_t* payload, size_t paylo
 bool valueToBusValueRGB(const KNXValue& value, uint8_t* payload, size_t payload_length, const Dpt& datatype);
 bool valueToBusValueFlaggedScaling(const KNXValue& value, uint8_t* payload, size_t payload_length, const Dpt& datatype);
 bool valueToBusValueActiveEnergy(const KNXValue& value, uint8_t* payload, size_t payload_length, const Dpt& datatype);
+bool valueToBusValueRGBW(const KNXValue& value, uint8_t* payload, size_t payload_length, const Dpt& datatype);
 
 //Payload manipulation
 bool bitFromPayload(const uint8_t* payload, int index);

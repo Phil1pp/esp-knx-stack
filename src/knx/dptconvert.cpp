@@ -16,9 +16,8 @@ bool KNX_Decode_Value(uint8_t* payload, size_t payload_length, const Dpt& dataty
     {
         // DPT 1.* - Binary
         if (datatype.mainGroup == 1 && datatype.subGroup >= 1 && datatype.subGroup <= 23 && datatype.subGroup != 20 && !datatype.index)
-        {
             return busValueToBinary(payload, payload_length, datatype, value);
-        } // DPT 2.* - Binary Control
+        // DPT 2.* - Binary Control
         if (datatype.mainGroup == 2 && datatype.subGroup >= 1 && datatype.subGroup <= 12 && datatype.index <= 1)
             return busValueToBinaryControl(payload, payload_length, datatype, value);
         // DPT 3.* - Step Control
@@ -126,6 +125,9 @@ bool KNX_Decode_Value(uint8_t* payload, size_t payload_length, const Dpt& dataty
         // DPT 239.* - Flagged Scaling
         if (datatype.mainGroup == 239 && datatype.subGroup == 1 && datatype.index <= 1)
             return busValueToFlaggedScaling(payload, payload_length, datatype, value);
+        // DPT 251.600 - RGBW
+        if (datatype.mainGroup == 251 && datatype.subGroup == 600 && !datatype.index)
+            return busValueToRGBW(payload, payload_length, datatype, value);
     }
     return false;
 }
@@ -243,6 +245,9 @@ bool KNX_Encode_Value(const KNXValue& value, uint8_t* payload, size_t payload_le
     // DPT 239.* - Flagged Scaling
     if (datatype.mainGroup == 239 && datatype.subGroup == 1 && datatype.index <= 1)
         return valueToBusValueFlaggedScaling(value, payload, payload_length, datatype);
+    // DPT 251.600 - RGB
+    if (datatype.mainGroup == 251 && datatype.subGroup == 600 && !datatype.index)
+        return valueToBusValueRGBW(value, payload, payload_length, datatype);
     return false;
 }
 
@@ -797,10 +802,18 @@ bool busValueToLocale(const uint8_t* payload, size_t payload_length, const Dpt& 
 bool busValueToRGB(const uint8_t* payload, size_t payload_length, const Dpt& datatype, KNXValue& value)
 {
     ASSERT_PAYLOAD(3);
-    uint32_t rgb = unsigned16FromPayload(payload, 0) * 256 + unsigned8FromPayload(payload, 2);
+    uint32_t rgb = unsigned16FromPayload(payload, 0) << 8 + unsigned8FromPayload(payload, 2);
     if (rgb > 16777215)
         return false;
     value = rgb;
+    return true;
+}
+
+bool busValueToRGBW(const uint8_t* payload, size_t payload_length, const Dpt& datatype, KNXValue& value)
+{
+    ASSERT_PAYLOAD(6);
+    uint32_t rgbw = payload[0] << 24 | payload[1] << 16 | payload[2] << 8 | payload[3];
+    value = rgbw;
     return true;
 }
 
@@ -1510,13 +1523,25 @@ bool valueToBusValueLocale(const KNXValue& value, uint8_t* payload, size_t paylo
 
 bool valueToBusValueRGB(const KNXValue& value, uint8_t* payload, size_t payload_length, const Dpt& datatype)
 {
-    if ((int64_t)value < INT64_C(0) || (int64_t)value > INT64_C(16777215))
+    if ((int64_t)value < INT64_C(0) || (int64_t)value > INT64_C(0xffffff))
         return false;
 
     unsigned int rgb = (int64_t)value;
 
-    unsigned16ToPayload(payload, payload_length, 0, rgb / 256, 0xffff);
-    unsigned8ToPayload(payload, payload_length, 2, rgb % 256, 0xff);
+    unsigned16ToPayload(payload, payload_length, 0, rgb >> 8, 0xffff);
+    unsigned8ToPayload(payload, payload_length, 2, rgb & 0xff, 0xff);
+    return true;
+}
+
+bool valueToBusValueRGBW(const KNXValue& value, uint8_t* payload, size_t payload_length, const Dpt& datatype)
+{
+    if ((int64_t)value < INT64_C(0) || (int64_t)value > INT64_C(0xffffffff))
+        return false;
+
+    unsigned int rgb = (int64_t)value;
+
+    unsigned16ToPayload(payload, payload_length, 0, rgb >> 16, 0xffff);
+    unsigned16ToPayload(payload, payload_length, 2, rgb & 0xffff, 0xffff);
     return true;
 }
 
