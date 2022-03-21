@@ -802,9 +802,7 @@ bool busValueToLocale(const uint8_t* payload, size_t payload_length, const Dpt& 
 bool busValueToRGB(const uint8_t* payload, size_t payload_length, const Dpt& datatype, KNXValue& value)
 {
     ASSERT_PAYLOAD(3);
-    uint32_t rgb = unsigned16FromPayload(payload, 0) << 8 + unsigned8FromPayload(payload, 2);
-    if (rgb > 16777215)
-        return false;
+    uint32_t rgb = (unsigned16FromPayload(payload, 0) << 8) | unsigned8FromPayload(payload, 2);
     value = rgb;
     return true;
 }
@@ -879,7 +877,7 @@ bool valueToBusValueBinaryControl(const KNXValue& value, uint8_t* payload, size_
 
 bool valueToBusValueStepControl(const KNXValue& value, uint8_t* payload, size_t payload_length, const Dpt& datatype)
 {
-    switch (datatype.index)
+    /*switch (datatype.index)
     {
         case 0:
             bitToPayload(payload, payload_length, 4, value);
@@ -893,7 +891,9 @@ bool valueToBusValueStepControl(const KNXValue& value, uint8_t* payload, size_t 
         break;
         default:
             return false;
-    }
+    }*/
+
+    unsigned8ToPayload(payload, payload_length, 0, (uint64_t)value, 0xFF);
 
     return true;
 }
