@@ -261,7 +261,7 @@ bool busValueToBinary(const uint8_t* payload, size_t payload_length, const Dpt& 
 bool busValueToBinaryControl(const uint8_t* payload, size_t payload_length, const Dpt& datatype, KNXValue& value)
 {
     ASSERT_PAYLOAD(1);
-    switch (datatype.index)
+    /*switch (datatype.index)
     {
         case 0:
             value = bitFromPayload(payload, 6);
@@ -269,9 +269,10 @@ bool busValueToBinaryControl(const uint8_t* payload, size_t payload_length, cons
         case 1:
             value = bitFromPayload(payload, 7);
             return true;
-    }
+    }*/
+    value = unsigned8FromPayload(payload, 0) & 0x03;
 
-    return false;
+    return true;
 }
 
 bool busValueToStepControl(const uint8_t* payload, size_t payload_length, const Dpt& datatype, KNXValue& value)
@@ -291,7 +292,7 @@ bool busValueToStepControl(const uint8_t* payload, size_t payload_length, const 
     }*/
     value = unsigned8FromPayload(payload, 0) & 0x0F;
 
-    return false;
+    return true;
 }
 bool busValueToCharacter(const uint8_t* payload, size_t payload_length, const Dpt& datatype, KNXValue& value)
 {
@@ -860,7 +861,7 @@ bool valueToBusValueBinary(const KNXValue& value, uint8_t* payload, size_t paylo
 
 bool valueToBusValueBinaryControl(const KNXValue& value, uint8_t* payload, size_t payload_length, const Dpt& datatype)
 {
-    switch (datatype.index)
+    /*switch (datatype.index)
     {
         case 0:
             bitToPayload(payload, payload_length, 6, value);
@@ -870,7 +871,9 @@ bool valueToBusValueBinaryControl(const KNXValue& value, uint8_t* payload, size_
             break;
         default:
             return false;
-    }
+    }*/
+    
+    unsigned8ToPayload(payload, payload_length, 0, (uint64_t)value, 0x03);
 
     return true;
 }
@@ -893,7 +896,7 @@ bool valueToBusValueStepControl(const KNXValue& value, uint8_t* payload, size_t 
             return false;
     }*/
 
-    unsigned8ToPayload(payload, payload_length, 0, (uint64_t)value, 0xFF);
+    unsigned8ToPayload(payload, payload_length, 0, (uint64_t)value, 0x0F);
 
     return true;
 }
