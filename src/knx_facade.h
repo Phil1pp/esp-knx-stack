@@ -218,12 +218,12 @@ template <class P, class B> class KnxFacade : private SaveRestore
             if (_progLedState)
             {
                 println("progmode on");
-                progLedOn();
+                //progLedOn();
             }
             else
             {
                 println("progmode off");
-                progLedOff();
+                //progLedOff();
             }
         }
         if (_toggleProgMode)
@@ -261,21 +261,21 @@ template <class P, class B> class KnxFacade : private SaveRestore
 
     void start()
     {
-        if (_progLedOffCallback == 0 || _progLedOnCallback == 0)
-            pinMode(ledPin(), OUTPUT);
+        // if (_progLedOffCallback == 0 || _progLedOnCallback == 0)
+            // pinMode(ledPin(), OUTPUT);
 
-        progLedOff();
-        pinMode(buttonPin(), INPUT_PULLUP);
+        // progLedOff();
+        // pinMode(buttonPin(), INPUT_PULLUP);
 
-        if (_progButtonISRFuncPtr && _buttonPin >= 0)
-        {
-            // Workaround for https://github.com/arduino/ArduinoCore-samd/issues/587
-            #if (ARDUINO_API_VERSION >= 10200)
-                attachInterrupt(_buttonPin, _progButtonISRFuncPtr, (PinStatus)CHANGE);
-            #else
-                attachInterrupt(_buttonPin, _progButtonISRFuncPtr, CHANGE);
-            #endif
-        }
+        // if (_progButtonISRFuncPtr && _buttonPin >= 0)
+        // {
+            // // Workaround for https://github.com/arduino/ArduinoCore-samd/issues/587
+            // #if (ARDUINO_API_VERSION >= 10200)
+                // attachInterrupt(_buttonPin, _progButtonISRFuncPtr, (PinStatus)CHANGE);
+            // #else
+                // attachInterrupt(_buttonPin, _progButtonISRFuncPtr, CHANGE);
+            // #endif
+        // }
 
         enabled(true);
     }
@@ -387,6 +387,11 @@ template <class P, class B> class KnxFacade : private SaveRestore
     {
         return _bau.groupObjectTable().get(goNr);
     }
+
+    uint16_t getGroupObjectCount()
+    {
+        return _bau.groupObjectTable().entryCount();
+    } 
 #endif
 
     void restart(uint16_t individualAddress)
