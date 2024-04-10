@@ -159,3 +159,7 @@ uint16_t crc16Dnp(uint8_t* input, uint16_t length)
         }
         return (~crc) & 0xffff;
 }
+
+uint32_t htonl(uint32_t x) {
+    return ( (getbyte(x,0)<<24) | (getbyte(x,1)<<16) | (getbyte(x,2)<<8) | getbyte(x,3) );
+}

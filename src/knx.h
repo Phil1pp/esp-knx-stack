@@ -131,6 +131,8 @@ class Esp32Platform [[class_esp32_platform.html]]
 ArduinoPlatform<|--Esp32Platform
 class Stm32Platform [[class_stm32_platform.html]]
 ArduinoPlatform<|--Stm32Platform
+class LibretinyPlatform [[class_libretiny_platform.html]]
+ArduinoPlatform<|--LibretinyPlatform
 class LinuxPlatform [[class_linux_platform.html]]
 LinuxPlatform--|>Platform
 }

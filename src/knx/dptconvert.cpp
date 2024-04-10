@@ -270,7 +270,7 @@ bool busValueToBinaryControl(const uint8_t* payload, size_t payload_length, cons
             value = bitFromPayload(payload, 7);
             return true;
     }*/
-    value = unsigned8FromPayload(payload, 0) & 0x03;
+    value = (uint8_t)(unsigned8FromPayload(payload, 0) & 0x03);
 
     return true;
 }
@@ -290,7 +290,7 @@ bool busValueToStepControl(const uint8_t* payload, size_t payload_length, const 
             return true;
         }
     }*/
-    value = unsigned8FromPayload(payload, 0) & 0x0F;
+    value = (uint8_t)(unsigned8FromPayload(payload, 0) & 0x0F);
 
     return true;
 }
