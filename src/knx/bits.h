@@ -8,6 +8,8 @@
 #elif defined(ARDUINO_ARCH_SAMD) || defined(ARDUINO_ARCH_RP2040) || defined(ARDUINO_ARCH_STM32) || defined (DeviceFamily_CC13X0) || defined(LIBRETINY)
 #define getbyte(x,n) (*(((uint8_t*)&(x))+n))
 #define htons(x)  ( (getbyte(x,0)<<8) | getbyte(x,1) )
+#include <lwip/udp.h>
+#define htonl lwip_htonl
 #define ntohs(x) htons(x)
 #define ntohl(x) htonl(x)
 #endif
@@ -103,7 +105,6 @@ uint8_t* pushInt(uint32_t i, uint8_t* data);
 uint8_t* pushByteArray(const uint8_t* src, uint32_t size, uint8_t* data);
 uint16_t getWord(const uint8_t* data);
 uint32_t getInt(const uint8_t* data);
-uint32_t htonl(uint32_t x);
 
 void sixBytesFromUInt64(uint64_t num, uint8_t* toByteArray);
 uint64_t sixBytesToUInt64(uint8_t* data);

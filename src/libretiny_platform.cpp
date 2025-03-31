@@ -4,6 +4,7 @@
 #include <Arduino.h>
 #include "knx/bits.h"
 #include <StreamString.h>
+#define KNX_FLASH_OFFSET 0x1DB000   // User Data
 
 #ifndef KNX_SERIAL
 #define KNX_SERIAL Serial
@@ -18,6 +19,7 @@ LibretinyPlatform::LibretinyPlatform()
 
 LibretinyPlatform::LibretinyPlatform( HardwareSerial* s) : ArduinoPlatform(s)
 {
+    _memoryType = Flash;
 }
 
 uint32_t LibretinyPlatform::currentIpAddress()
@@ -35,6 +37,11 @@ uint32_t LibretinyPlatform::currentDefaultGateway()
     return WiFi.gatewayIP();
 }
 
+void LibretinyPlatform::macAddress(uint8_t * addr)
+{
+    macAddress(addr);
+}
+
 uint32_t LibretinyPlatform::uniqueSerialNumber()
 {
     return lt_cpu_get_mac_id();
@@ -48,18 +55,18 @@ void LibretinyPlatform::restart()
 
 void LibretinyPlatform::setupMultiCast(uint32_t addr, uint16_t port)
 {
-    _multicastAddr = htonl(addr);
-    _multicastPort = port;
-    IPAddress mcastaddr(_multicastAddr);
-    StreamString mac, ip;
-    mac.reserve(16);
-    mcastaddr.printTo(mac);
-    ip.reserve(16);
-    WiFi.localIP().printTo(ip);
+    IPAddress mcastaddr(htonl(addr));
+    //IPAddress mcastaddr = IPAddress(224, 0, 23, 12);
+    
+    // StreamString mcast, ip;
+    // mcast.reserve(16);
+    // mcastaddr.printTo(mcast);
+    // ip.reserve(16);
+    // WiFi.localIP().printTo(ip);
 
-    KNX_DEBUG_SERIAL.printf("setup multicast addr: %s port: %d ip: %s\n", mac.c_str(), port,
-        ip.c_str());
-    uint8_t result = _udp.beginMulticast(WiFi.localIP(), port);
+    // KNX_DEBUG_SERIAL.printf("setup multicast addr: %s port: %d ip: %s\n", mcast.c_str(), port,
+    //     ip.c_str());
+    uint8_t result = _udp.beginMulticast(mcastaddr, port);
     KNX_DEBUG_SERIAL.printf("multicast setup result %d\n", result);
 }
 
@@ -104,6 +111,51 @@ bool LibretinyPlatform::sendBytesUniCast(uint32_t addr, uint16_t port, uint8_t* 
     }
     else println("sendBytesUniCast beginPacket fail");
     return true;
+}
+
+size_t LibretinyPlatform::flashEraseBlockSize()
+{
+    return 16; // 16 pages x 256byte/page = 4096byte
+}
+
+size_t LibretinyPlatform::flashPageSize()
+{
+    return 256;
+}
+
+uint8_t* LibretinyPlatform::userFlashStart()
+{
+    return (uint8_t*)KNX_FLASH_OFFSET;
+}
+
+size_t LibretinyPlatform::userFlashSizeEraseBlocks()
+{
+    if(KNX_FLASH_SIZE <= 0)
+        return 0;
+    else
+        return ( (KNX_FLASH_SIZE - 1) / (flashPageSize() * flashEraseBlockSize())) + 1;
+}
+
+void LibretinyPlatform::flashErase(uint16_t eraseBlockNum)
+{
+    lt_flash_erase_block(KNX_FLASH_OFFSET + eraseBlockNum * flashPageSize() * flashEraseBlockSize());
+    //eraseBlock(KNX_FLASH_OFFSET + eraseBlockNum * flashPageSize() * flashEraseBlockSize(), flashPageSize() * flashEraseBlockSize());
+}
+
+void LibretinyPlatform::flashWritePage(uint16_t pageNumber, uint8_t* data)
+{
+    lt_flash_write(KNX_FLASH_OFFSET + pageNumber * flashPageSize(), data, flashPageSize());
+}
+
+void LibretinyPlatform::writeBufferedEraseBlock()
+{
+    if(_bufferedEraseblockNumber > -1 && _bufferedEraseblockDirty)
+    {
+        lt_flash_erase_block(KNX_FLASH_OFFSET + _bufferedEraseblockNumber * flashPageSize() * flashEraseBlockSize());
+        //eraseBlock(KNX_FLASH_OFFSET + _bufferedEraseblockNumber * flashPageSize() * flashEraseBlockSize(), flashPageSize() * flashEraseBlockSize());
+        lt_flash_write(KNX_FLASH_OFFSET + _bufferedEraseblockNumber * flashPageSize() * flashEraseBlockSize(), _eraseblockBuffer, flashPageSize() * flashEraseBlockSize());
+        _bufferedEraseblockDirty = false;
+    }
 }
 
 #endif
