@@ -10,11 +10,14 @@
 #define KNX_SERIAL Serial
 #endif
 
+static uint8_t NVS_buffer[KNX_FLASH_SIZE];
+
 LibretinyPlatform::LibretinyPlatform()
 #ifndef KNX_NO_DEFAULT_UART
     : ArduinoPlatform(&KNX_SERIAL)
 #endif
 {
+    _memoryType = Flash;
 }
 
 LibretinyPlatform::LibretinyPlatform( HardwareSerial* s) : ArduinoPlatform(s)
@@ -56,16 +59,8 @@ void LibretinyPlatform::restart()
 void LibretinyPlatform::setupMultiCast(uint32_t addr, uint16_t port)
 {
     IPAddress mcastaddr(htonl(addr));
-    //IPAddress mcastaddr = IPAddress(224, 0, 23, 12);
-    
-    // StreamString mcast, ip;
-    // mcast.reserve(16);
-    // mcastaddr.printTo(mcast);
-    // ip.reserve(16);
-    // WiFi.localIP().printTo(ip);
 
-    // KNX_DEBUG_SERIAL.printf("setup multicast addr: %s port: %d ip: %s\n", mcast.c_str(), port,
-    //     ip.c_str());
+    KNX_DEBUG_SERIAL.printf("setup multicast addr: %s port: %d ip: %s\n", mcastaddr.toString().c_str(), port, WiFi.localIP().toString().c_str());
     uint8_t result = _udp.beginMulticast(mcastaddr, port);
     KNX_DEBUG_SERIAL.printf("multicast setup result %d\n", result);
 }
@@ -125,7 +120,8 @@ size_t LibretinyPlatform::flashPageSize()
 
 uint8_t* LibretinyPlatform::userFlashStart()
 {
-    return (uint8_t*)KNX_FLASH_OFFSET;
+    lt_flash_read(KNX_FLASH_OFFSET, NVS_buffer, KNX_FLASH_SIZE);
+    return NVS_buffer;
 }
 
 size_t LibretinyPlatform::userFlashSizeEraseBlocks()
