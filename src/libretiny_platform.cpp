@@ -4,10 +4,14 @@
 #include <Arduino.h>
 #include "knx/bits.h"
 #include <StreamString.h>
-#define KNX_FLASH_OFFSET 0x1DB000   // User Data
+#include <lwip/netif.h>
 
 #ifndef KNX_SERIAL
 #define KNX_SERIAL Serial
+#endif
+
+#ifndef KNX_FLASH_OFFSET % 4096
+#error "KNX_FLASH_OFFSET must be set as multiple of 4096"
 #endif
 
 static uint8_t NVS_buffer[KNX_FLASH_SIZE];
@@ -58,8 +62,13 @@ void LibretinyPlatform::restart()
 
 void LibretinyPlatform::setupMultiCast(uint32_t addr, uint16_t port)
 {
-    IPAddress mcastaddr(htonl(addr));
+    //workaround for libretiny bug: NETIF_FLAG_IGMP is not set by default
+    struct netif *netif;
+	for (netif = netif_list; netif != NULL; netif = netif->next) {
+		netif->flags |= NETIF_FLAG_IGMP;
+	}
 
+    IPAddress mcastaddr(htonl(addr));
     KNX_DEBUG_SERIAL.printf("setup multicast addr: %s port: %d ip: %s\n", mcastaddr.toString().c_str(), port, WiFi.localIP().toString().c_str());
     uint8_t result = _udp.beginMulticast(mcastaddr, port);
     KNX_DEBUG_SERIAL.printf("multicast setup result %d\n", result);
@@ -72,7 +81,6 @@ void LibretinyPlatform::closeMultiCast()
 
 bool LibretinyPlatform::sendBytesMultiCast(uint8_t * buffer, uint16_t len)
 {
-    //printHex("<- ",buffer, len);
     _udp.beginMulticastPacket();
     _udp.write(buffer, len);
     _udp.endPacket();
@@ -92,7 +100,6 @@ int LibretinyPlatform::readBytesMultiCast(uint8_t * buffer, uint16_t maxLen)
     }
 
     _udp.read(buffer, len);
-    //printHex("-> ", buffer, len);
     return len;
 }
 
@@ -110,7 +117,7 @@ bool LibretinyPlatform::sendBytesUniCast(uint32_t addr, uint16_t port, uint8_t* 
 
 size_t LibretinyPlatform::flashEraseBlockSize()
 {
-    return 16; // 16 pages x 256byte/page = 4096byte
+    return 16;
 }
 
 size_t LibretinyPlatform::flashPageSize()
@@ -134,8 +141,8 @@ size_t LibretinyPlatform::userFlashSizeEraseBlocks()
 
 void LibretinyPlatform::flashErase(uint16_t eraseBlockNum)
 {
+    // 16 pages x 256byte/page = 4096byte
     lt_flash_erase_block(KNX_FLASH_OFFSET + eraseBlockNum * flashPageSize() * flashEraseBlockSize());
-    //eraseBlock(KNX_FLASH_OFFSET + eraseBlockNum * flashPageSize() * flashEraseBlockSize(), flashPageSize() * flashEraseBlockSize());
 }
 
 void LibretinyPlatform::flashWritePage(uint16_t pageNumber, uint8_t* data)
